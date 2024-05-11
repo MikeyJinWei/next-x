@@ -1,8 +1,14 @@
+"use client";
+
 import { SiCoinmarketcap } from "react-icons/si";
 import { HiHome } from "react-icons/hi";
 import Link from "next/link";
+import { signIn, signOut, useSession } from "next-auth/react";
 
 const Sidebar = () => {
+  // 存取 data 命名成 session
+  const { data: session } = useSession;
+
   return (
     <div className="flex flex-col gap-4">
       <Link href="/">
@@ -17,9 +23,22 @@ const Sidebar = () => {
         <span className="font-bold hidden xl:inline">Home</span>
       </Link>
 
-      <button className="hidden xl:inline w-48 h-9 mt-4 rounded-full font-semibold text-white bg-indigo-400 hover:brightness-95 shadow-md cursor-pointer transition-all duration-300 ease-in-out">
-        Sign In
-      </button>
+      {/* 依 session truthy falsy 渲染按鈕 */}
+      {session ? (
+        <button
+          onClick={() => signIn()}
+          className="hidden xl:inline w-48 h-9 mt-4 rounded-full font-semibold text-white bg-indigo-400 hover:brightness-95 shadow-md cursor-pointer transition-all duration-300 ease-in-out"
+        >
+          Sign In
+        </button>
+      ) : (
+        <button
+          onClick={() => signOut()}
+          className="hidden xl:inline w-48 h-9 mt-4 rounded-full font-semibold text-white bg-indigo-400 hover:brightness-95 shadow-md cursor-pointer transition-all duration-300 ease-in-out"
+        >
+          Sign Out
+        </button>
+      )}
     </div>
   );
 };
