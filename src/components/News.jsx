@@ -19,7 +19,7 @@ const News = () => {
   return (
     <div className="space-y-3 pt-2 text-gray-700 rounded-xl bg-neutral-100">
       {/* 可能需要跳脫字元？ */}
-      <h4 className="px-4 text-lg font-bold">What's happening</h4>
+      <h4 className="px-4 text-lg font-bold">What&apos;s happening</h4>
       {news.slice(0, articlesNum).map((article) => (
         <div key={article.url}>
           <a href={article.url} target="_blank">
