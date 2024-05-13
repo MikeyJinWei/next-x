@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { FaImage } from "react-icons/fa6";
+
 import { app } from "../firebase";
 import {
   getStorage,
@@ -10,6 +11,12 @@ import {
   uploadBytesResumable,
   getDownloadURL,
 } from "firebase/storage";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  getFirestore,
+} from "firebase/firestore";
 
 const Input = () => {
   const { data: session } = useSession();
@@ -22,6 +29,10 @@ const Input = () => {
   // console.log(imgFileUrl);
   // 管理照片上傳狀態
   const [imgFileUploading, setImgFileUploading] = useState(false);
+  // 管理 textarea 狀態
+  const [text, setText] = useState("");
+  // 管理發文 (Post) 加載狀態
+  const [postLoading, setPostLoading] = useState(false);
   // 創建 URL 渲染預覽圖、準備上傳至 firebase storage
   const addImgToPost = (e) => {
     const file = e.target.files[0];
@@ -81,7 +92,29 @@ const Input = () => {
         });
       }
     );
-    //
+  };
+
+  // 提交圖片文字至 Firebase firestore
+  const db = getFirestore(app); // 初始化 Firestore db
+  const handleSubmit = async () => {
+    setPostLoading(true);
+
+    // 創建 posts collection
+    const docsRef = await addDoc(collection(db, "posts"), {
+      // 每筆 post 帶有的 key
+      userId: session.user.userId,
+      name: session.user.name,
+      username: session.user.username,
+      text,
+      profileImg: session.user.image,
+      timestamp: serverTimestamp(),
+      postImg: imgFileUrl,
+    });
+
+    setPostLoading(false);
+    setText("");
+    setImgFileUrl(null);
+    setSelectedFile(null);
   };
 
   if (!session) return null;
@@ -95,15 +128,20 @@ const Input = () => {
 
       <div className="w-full divide-y divide-neutral-200">
         <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
           rows={2}
-          placeholder="What's happening?"
+          placeholder="What's happening"
           className="w-full min-h-[50px] text-neutral-700 tracking-wide border-none outline-none"
         ></textarea>
         {selectedFile && (
           <img
             src={imgFileUrl}
             alt="post-img"
-            className="w-full max-h-[250px] object-cover cursor-pointer"
+            // 依照片上傳進度條件渲染動畫 className
+            className={`w-full max-h-[250px] object-cover cursor-pointer
+              ${imgFileUploading ? "animate-pulse" : ""}
+            `}
           />
         )}
 
@@ -128,7 +166,14 @@ const Input = () => {
             >
               Cancel
             </button>
-            <button className="px-4 py-1.5 rounded-full font-medium text-white bg-indigo-400 hover:brightness-95 disabled:opacity-50 shadow-md">
+            <button
+              // disabled 當 textarea 為空值（trim() method 去除誤打的空白鍵）
+              // 或發文正在加載
+              // 或圖片正在上傳
+              disabled={text.trim() === "" || postLoading || imgFileUploading}
+              onClick={handleSubmit}
+              className="px-4 py-1.5 rounded-full font-medium text-white bg-indigo-400 hover:brightness-95 disabled:opacity-50 shadow-md"
+            >
               Post
             </button>
           </div>
