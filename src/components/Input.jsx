@@ -115,6 +115,7 @@ const Input = () => {
     setText("");
     setImgFileUrl(null);
     setSelectedFile(null);
+    location.reload(); // 重整頁面即時更新資料
   };
 
   if (!session) return null;
@@ -139,7 +140,7 @@ const Input = () => {
             src={imgFileUrl}
             alt="post-img"
             // 依照片上傳進度條件渲染動畫 className
-            className={`w-full max-h-[250px] object-cover cursor-pointer
+            className={`w-full object-cover cursor-pointer
               ${imgFileUploading ? "animate-pulse" : ""}
             `}
           />
